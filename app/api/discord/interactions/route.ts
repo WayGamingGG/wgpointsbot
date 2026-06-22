@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { InteractionType, InteractionResponseType, verifyKey } from 'discord-interactions';
+import { InteractionType, InteractionResponseType } from 'discord-interactions';
 import { handleCommand } from '@/lib/discord/command-router';
 import { handleComponent } from '@/lib/discord/component-router';
 
@@ -9,8 +9,25 @@ async function verifyRequest(req: NextRequest): Promise<{ valid: boolean; body: 
   const signature = req.headers.get('x-signature-ed25519') ?? '';
   const timestamp = req.headers.get('x-signature-timestamp') ?? '';
   const body = await req.text();
-  const valid = await verifyKey(body, signature, timestamp, process.env.DISCORD_PUBLIC_KEY!);
-  return { valid, body };
+
+  try {
+    const publicKeyRaw = Buffer.from(process.env.DISCORD_PUBLIC_KEY!, 'hex');
+    const signatureRaw = Buffer.from(signature, 'hex');
+    const message = Buffer.from(timestamp + body);
+
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      publicKeyRaw,
+      { name: 'Ed25519' },
+      false,
+      ['verify']
+    );
+
+    const valid = await crypto.subtle.verify('Ed25519', cryptoKey, signatureRaw, message);
+    return { valid, body };
+  } catch {
+    return { valid: false, body };
+  }
 }
 
 export async function POST(req: NextRequest) {
