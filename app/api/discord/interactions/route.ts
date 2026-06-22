@@ -5,6 +5,10 @@ import { handleComponent } from '@/lib/discord/component-router';
 
 export const runtime = 'nodejs';
 
+export async function GET() {
+  return NextResponse.json({ status: 'ok', message: 'Discord interactions endpoint' });
+}
+
 async function verifyRequest(req: NextRequest): Promise<{ valid: boolean; body: string }> {
   const signature = req.headers.get('x-signature-ed25519') ?? '';
   const timestamp = req.headers.get('x-signature-timestamp') ?? '';
