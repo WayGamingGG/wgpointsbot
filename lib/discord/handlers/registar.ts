@@ -2,16 +2,33 @@ import { NextResponse } from 'next/server';
 import { InteractionResponseType } from 'discord-interactions';
 import { supabase } from '@/lib/supabase/client';
 
-export async function handleRegistar(interaction: any): Promise<NextResponse> {
+type Game = 'lol' | 'val';
+
+const GAME_LABEL: Record<Game, string> = { lol: 'League of Legends', val: 'Valorant' };
+const GAME_COLOR: Record<Game, number> = { lol: 0x5b7fff, val: 0xe94b5a };
+
+const EVENT_TAGS = ['mvp', 'ace'] as const;
+
+export async function handleRegister(interaction: any, game: Game): Promise<NextResponse> {
   const options = interaction.data.options ?? [];
   const resolvedUsers = interaction.data.resolved?.users ?? {};
   const resolvedAttachments = interaction.data.resolved?.attachments ?? {};
 
-  const tipoOpt = options.find((o: any) => o.name === 'tipo');
   const screenshotOpt = options.find((o: any) => o.name === 'screenshot');
   const jogadorOpt = options.find((o: any) => o.name === 'jogador');
 
-  const tipo: string = tipoOpt?.value;
+  // Collect selected event tags (boolean options that are true)
+  const selectedTags = EVENT_TAGS.filter(tag =>
+    options.find((o: any) => o.name === tag && o.value === true)
+  );
+
+  if (selectedTags.length === 0) {
+    return NextResponse.json({
+      type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+      data: { content: 'Seleciona pelo menos um evento (MVP, ACE).', flags: 64 },
+    });
+  }
+
   const screenshotId: string = screenshotOpt?.value;
   const attachment = resolvedAttachments[screenshotId];
   const screenshotUrl: string = attachment?.url ?? '';
@@ -25,6 +42,7 @@ export async function handleRegistar(interaction: any): Promise<NextResponse> {
   const targetDisplayName: string =
     targetUser?.global_name ?? targetUser?.username ?? registadoPorUsername;
 
+  // Upsert player
   const { data: player, error: playerError } = await supabase
     .from('players')
     .upsert({ discord_id: targetUserId, nome: targetDisplayName }, { onConflict: 'discord_id' })
@@ -39,20 +57,21 @@ export async function handleRegistar(interaction: any): Promise<NextResponse> {
     });
   }
 
-  const { data: eventType, error: eventTypeError } = await supabase
+  // Fetch event types for selected tags
+  const { data: eventTypes, error: etError } = await supabase
     .from('event_types')
     .select()
-    .eq('codigo', tipo)
-    .eq('ativo', true)
-    .single();
+    .in('codigo', selectedTags.map(t => t.toUpperCase()))
+    .eq('ativo', true);
 
-  if (eventTypeError || !eventType) {
+  if (etError || !eventTypes || eventTypes.length === 0) {
     return NextResponse.json({
       type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-      data: { content: `Tipo de evento "${tipo}" não encontrado.`, flags: 64 },
+      data: { content: 'Nenhum tipo de evento válido encontrado.', flags: 64 },
     });
   }
 
+  // Create match
   const { data: match, error: matchError } = await supabase
     .from('matches')
     .insert({
@@ -60,6 +79,7 @@ export async function handleRegistar(interaction: any): Promise<NextResponse> {
       screenshot_url: screenshotUrl,
       registado_por: `${registadoPorUsername} (${registadoPorId})`,
       status: 'pendente',
+      game,
     })
     .select()
     .single();
@@ -72,33 +92,38 @@ export async function handleRegistar(interaction: any): Promise<NextResponse> {
     });
   }
 
-  await supabase.from('point_events').insert({
+  // Create one point_event per selected tag
+  const pointEventsToInsert = eventTypes.map(et => ({
     match_id: match.id,
-    event_type_id: eventType.id,
-    pontos: eventType.pontos,
-  });
+    event_type_id: et.id,
+    pontos: et.pontos,
+  }));
 
+  await supabase.from('point_events').insert(pointEventsToInsert);
+
+  const totalPontos = eventTypes.reduce((acc, et) => acc + et.pontos, 0);
+  const tagsLabel = eventTypes.map(et => `${et.codigo} (${et.pontos}pts)`).join(' + ');
+
+  // Post to validation channel
   const channelId = process.env.DISCORD_VALIDACAO_CHANNEL_ID!;
   const botToken = process.env.DISCORD_BOT_TOKEN!;
 
   const embed = {
-    title: `Nova submissão — ${tipo}`,
-    description: `**Jogador:** <@${targetUserId}> (${targetDisplayName})\n**Registado por:** <@${registadoPorId}>\n**Pontos:** ${eventType.pontos}`,
+    title: `Nova submissão — ${GAME_LABEL[game]}`,
+    description: `**Jogador:** <@${targetUserId}> (${targetDisplayName})\n**Registado por:** <@${registadoPorId}>\n**Eventos:** ${tagsLabel}\n**Total:** ${totalPontos} pts`,
     image: screenshotUrl ? { url: screenshotUrl } : undefined,
-    color: tipo === 'MVP' ? 0xc9a95d : 0x00d4aa,
+    color: GAME_COLOR[game],
     footer: { text: `match_id: ${match.id}` },
     timestamp: new Date().toISOString(),
   };
 
-  const components = [
-    {
-      type: 1,
-      components: [
-        { type: 2, style: 3, label: '✅ Aprovar', custom_id: `aprovar:${match.id}` },
-        { type: 2, style: 4, label: '❌ Rejeitar', custom_id: `rejeitar:${match.id}` },
-      ],
-    },
-  ];
+  const components = [{
+    type: 1,
+    components: [
+      { type: 2, style: 3, label: '✅ Aprovar', custom_id: `aprovar:${match.id}` },
+      { type: 2, style: 4, label: '❌ Rejeitar', custom_id: `rejeitar:${match.id}` },
+    ],
+  }];
 
   await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
     method: 'POST',
@@ -109,7 +134,7 @@ export async function handleRegistar(interaction: any): Promise<NextResponse> {
   return NextResponse.json({
     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
     data: {
-      content: `Submissão enviada para aprovação! O teu **${tipo}** (${eventType.pontos} pontos) está pendente de validação.`,
+      content: `Submissão enviada para aprovação! **${GAME_LABEL[game]}** — ${tagsLabel} = **${totalPontos} pts** pendentes de validação.`,
       flags: 64,
     },
   });

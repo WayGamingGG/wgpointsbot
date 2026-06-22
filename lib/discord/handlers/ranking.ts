@@ -3,43 +3,48 @@ import { InteractionResponseType } from 'discord-interactions';
 import { supabase } from '@/lib/supabase/client';
 
 const PAGE_SIZE = 10;
-type RankingPeriod = 'geral' | 'semanal' | 'mensal';
+type RankingPeriod = 'semanal' | 'mensal';
+type Game = 'lol' | 'val';
 
-function getDateFilter(period: RankingPeriod): string | null {
+const GAME_LABEL: Record<Game, string> = { lol: 'LoL', val: 'Valorant' };
+const GAME_COLOR: Record<Game, number> = { lol: 0x5b7fff, val: 0xe94b5a };
+
+function getDateFilter(period: RankingPeriod): string {
   const now = new Date();
   if (period === 'semanal') {
     const d = new Date(now);
     d.setDate(d.getDate() - 7);
     return d.toISOString();
   }
-  if (period === 'mensal') {
-    const d = new Date(now);
-    d.setMonth(d.getMonth() - 1);
-    return d.toISOString();
-  }
-  return null;
+  const d = new Date(now);
+  d.setMonth(d.getMonth() - 1);
+  return d.toISOString();
 }
 
-const periodLabel: Record<RankingPeriod, string> = {
-  geral: 'Geral',
+const periodLabel: Record<string, string> = {
   semanal: 'Semanal',
   mensal: 'Mensal',
+  geral: 'Geral',
 };
 
-export async function handleRanking(interaction: any, period: RankingPeriod): Promise<NextResponse> {
+export async function handleRanking(
+  interaction: any,
+  period: RankingPeriod | 'geral',
+  game: Game
+): Promise<NextResponse> {
   const options = interaction.data.options ?? [];
   const paginaOpt = options.find((o: any) => o.name === 'pagina');
   const page = Math.max(1, paginaOpt?.value ?? 1);
   const offset = (page - 1) * PAGE_SIZE;
-  const dateFilter = getDateFilter(period);
 
   let query = supabase
     .from('point_events')
-    .select('pontos, matches!inner(status, criado_em, players!inner(discord_id, nome))')
-    .eq('matches.status', 'aprovado');
+    .select('pontos, matches!inner(status, criado_em, game, players!inner(discord_id, nome))')
+    .eq('matches.status', 'aprovado')
+    .eq('matches.game', game);
 
-  if (dateFilter) {
-    query = query.gte('matches.criado_em', dateFilter);
+  if (period !== 'geral') {
+    query = query.gte('matches.criado_em', getDateFilter(period));
   }
 
   const { data, error } = await query;
@@ -70,7 +75,7 @@ export async function handleRanking(interaction: any, period: RankingPeriod): Pr
   if (paginated.length === 0) {
     return NextResponse.json({
       type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-      data: { content: `Ainda não há jogadores com pontos para o ranking **${periodLabel[period]}**.` },
+      data: { content: `Ainda não há jogadores com pontos no ranking **${GAME_LABEL[game]} ${periodLabel[period]}**.` },
     });
   }
 
@@ -82,9 +87,9 @@ export async function handleRanking(interaction: any, period: RankingPeriod): Pr
   });
 
   const embed = {
-    title: `🏆 Ranking ${periodLabel[period]}`,
+    title: `🏆 Ranking ${GAME_LABEL[game]} — ${periodLabel[period]}`,
     description: lines.join('\n'),
-    color: 0xc9a95d,
+    color: GAME_COLOR[game],
     footer: { text: `Página ${page} de ${totalPages} · ${total} jogadores` },
     timestamp: new Date().toISOString(),
   };
