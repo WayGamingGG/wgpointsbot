@@ -14,44 +14,17 @@ const rankingListOptions = [
   { name: 'pagina', description: 'Número da página', type: 4, required: false },
 ];
 
-const eventChoices = [
-  { name: 'MVP',               value: 'MVP'               },
-  { name: 'WIN',               value: 'WIN'               },
-  { name: 'WIN5',              value: 'WIN5'              },
-  { name: 'ZERO_DEATH',        value: 'ZERO_DEATH'        },
-  { name: 'RANK_UP',           value: 'RANK_UP'           },
-  { name: 'PENTAKILL',         value: 'PENTAKILL'         },
-  { name: 'S+',                value: 'S+'                },
-  { name: 'CS_250',            value: 'CS_250'            },
-  { name: 'OBJ_MENSAL',        value: 'OBJ_MENSAL'        },
-  { name: 'KILL_ASSIST_50',    value: 'KILL_ASSIST_50'    },
-  { name: 'FAIR_PLAY',         value: 'FAIR_PLAY'         },
-  { name: 'QUADRAKILL',        value: 'QUADRAKILL'        },
-  { name: 'TOP_DAMAGE',        value: 'TOP_DAMAGE'        },
-  { name: 'HONORS_4',          value: 'HONORS_4'          },
-  { name: 'LOSE',              value: 'LOSE'              },
-  { name: 'FALTA_TREINO',      value: 'FALTA_TREINO'      },
-  { name: 'LOSE5',             value: 'LOSE5'             },
-  { name: '10_DEATH',          value: '10_DEATH'          },
-  { name: 'RANK_DOWN',         value: 'RANK_DOWN'         },
-  { name: 'OBJ_MENSAL_FALHOU', value: 'OBJ_MENSAL_FALHOU' },
-  { name: 'OBJ_JUNGLE_0',      value: 'OBJ_JUNGLE_0'      },
-];
-
 const registerOptions = [
-  { name: 'screenshot', description: 'Screenshot da partida como prova',       type: 11, required: true,  },
-  { name: 'evento1',    description: 'Evento principal',                        type: 3,  required: true,  choices: eventChoices },
-  { name: 'evento2',    description: 'Segundo evento (opcional)',                type: 3,  required: false, choices: eventChoices },
-  { name: 'evento3',    description: 'Terceiro evento (opcional)',               type: 3,  required: false, choices: eventChoices },
-  { name: 'jogador',    description: 'Jogador a registar (vazio = tu próprio)', type: 6,  required: false, },
+  { name: 'screenshot', description: 'Screenshot da partida como prova',        type: 11, required: true  },
+  { name: 'jogador',    description: 'Jogador a registar (vazio = tu próprio)', type: 6,  required: false },
 ];
 
 const commands = [
-  { name: 'lolregister', description: 'Registar uma partida de LoL (MVP, WIN, PENTAKILL, etc.)', options: registerOptions },
+  { name: 'lolregister', description: 'Registar uma partida de League of Legends', options: registerOptions },
   { name: 'lolpoints', description: 'Ver pontos e estatísticas de LoL de um jogador', options: rankingOptions },
   { name: 'lolmensal', description: 'Ranking mensal de pontos de LoL', options: rankingListOptions },
   { name: 'lolsemanal', description: 'Ranking semanal de pontos de LoL', options: rankingListOptions },
-  { name: 'valregister', description: 'Registar uma partida de Valorant (MVP, WIN, PENTAKILL, etc.)', options: registerOptions },
+  { name: 'valregister', description: 'Registar uma partida de Valorant', options: registerOptions },
   { name: 'valpoints', description: 'Ver pontos e estatísticas de Valorant de um jogador', options: rankingOptions },
   { name: 'valmensal', description: 'Ranking mensal de pontos de Valorant', options: rankingListOptions },
   { name: 'valsemanal', description: 'Ranking semanal de pontos de Valorant', options: rankingListOptions },
