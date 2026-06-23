@@ -7,7 +7,29 @@ type Game = 'lol' | 'val';
 const GAME_LABEL: Record<Game, string> = { lol: 'League of Legends', val: 'Valorant' };
 const GAME_COLOR: Record<Game, number> = { lol: 0x5b7fff, val: 0xe94b5a };
 
-const EVENT_TAGS = ['mvp', 'ace'] as const;
+const EVENT_OPTION_MAP: Record<string, string> = {
+  mvp:              'MVP',
+  win:              'WIN',
+  win5:             'WIN5',
+  zero_death:       'ZERO_DEATH',
+  rank_up:          'RANK_UP',
+  pentakill:        'PENTAKILL',
+  s_mais:           'S+',
+  cs_250:           'CS_250',
+  obj_mensal:       'OBJ_MENSAL',
+  kill_assist_50:   'KILL_ASSIST_50',
+  fair_play:        'FAIR_PLAY',
+  quadrakill:       'QUADRAKILL',
+  top_damage:       'TOP_DAMAGE',
+  honors_4:         'HONORS_4',
+  lose:             'LOSE',
+  falta_treino:     'FALTA_TREINO',
+  lose5:            'LOSE5',
+  death_10:         '10_DEATH',
+  rank_down:        'RANK_DOWN',
+  obj_mensal_falhou:'OBJ_MENSAL_FALHOU',
+  obj_jungle_0:     'OBJ_JUNGLE_0',
+};
 
 export async function handleRegister(interaction: any, game: Game): Promise<NextResponse> {
   const options = interaction.data.options ?? [];
@@ -17,15 +39,14 @@ export async function handleRegister(interaction: any, game: Game): Promise<Next
   const screenshotOpt = options.find((o: any) => o.name === 'screenshot');
   const jogadorOpt = options.find((o: any) => o.name === 'jogador');
 
-  // Collect selected event tags (boolean options that are true)
-  const selectedTags = EVENT_TAGS.filter(tag =>
-    options.find((o: any) => o.name === tag && o.value === true)
-  );
+  const selectedCodigos = Object.entries(EVENT_OPTION_MAP)
+    .filter(([optName]) => options.find((o: any) => o.name === optName && o.value === true))
+    .map(([, codigo]) => codigo);
 
-  if (selectedTags.length === 0) {
+  if (selectedCodigos.length === 0) {
     return NextResponse.json({
       type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-      data: { content: 'Seleciona pelo menos um evento (MVP, ACE).', flags: 64 },
+      data: { content: 'Seleciona pelo menos um evento.', flags: 64 },
     });
   }
 
@@ -61,7 +82,7 @@ export async function handleRegister(interaction: any, game: Game): Promise<Next
   const { data: eventTypes, error: etError } = await supabase
     .from('event_types')
     .select()
-    .in('codigo', selectedTags.map(t => t.toUpperCase()))
+    .in('codigo', selectedCodigos)
     .eq('ativo', true);
 
   if (etError || !eventTypes || eventTypes.length === 0) {

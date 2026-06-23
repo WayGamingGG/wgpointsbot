@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --app --no-tailwind --eslint --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(mv *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(git remote *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "WebSearch",
+      "Bash(vercel --version)",
+      "Bash(vercel link *)",
+      "Bash(vercel env *)",
+      "Bash(vercel --prod --yes)",
+      "Bash(vercel logs *)",
+      "Bash(git commit -m 'fix: substituir discord-interactions verifyKey por Web Crypto API nativa *)",
+      "Bash(git commit -m 'debug: adicionar GET handler para verificar acessibilidade da rota *)",
+      "Bash(vercel ls *)",
+      "Bash(vercel inspect *)",
+      "Bash(vercel integration *)"
+    ]
+  }
+}
