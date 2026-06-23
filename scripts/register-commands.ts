@@ -19,15 +19,40 @@ const registerOptions = [
   { name: 'jogador',    description: 'Jogador a registar (vazio = tu próprio)', type: 6,  required: false },
 ];
 
+const staffRegisterOptions = [
+  { name: 'jogador', description: 'Jogador a registar', type: 6, required: true },
+  {
+    name: 'evento',
+    description: 'Evento de treino',
+    type: 3,
+    required: true,
+    choices: [
+      { name: 'Participou no Treino', value: 'TREINO' },
+      { name: 'Faltou ao Treino',     value: 'FALTA_TREINO' },
+    ],
+  },
+  {
+    name: 'jogo',
+    description: 'Jogo do treino',
+    type: 3,
+    required: true,
+    choices: [
+      { name: 'League of Legends', value: 'lol' },
+      { name: 'Valorant',          value: 'val' },
+    ],
+  },
+];
+
 const commands = [
-  { name: 'lolregister', description: 'Registar uma partida de League of Legends', options: registerOptions },
-  { name: 'lolpoints', description: 'Ver pontos e estatísticas de LoL de um jogador', options: rankingOptions },
-  { name: 'lolmensal', description: 'Ranking mensal de pontos de LoL', options: rankingListOptions },
-  { name: 'lolsemanal', description: 'Ranking semanal de pontos de LoL', options: rankingListOptions },
-  { name: 'valregister', description: 'Registar uma partida de Valorant', options: registerOptions },
-  { name: 'valpoints', description: 'Ver pontos e estatísticas de Valorant de um jogador', options: rankingOptions },
-  { name: 'valmensal', description: 'Ranking mensal de pontos de Valorant', options: rankingListOptions },
-  { name: 'valsemanal', description: 'Ranking semanal de pontos de Valorant', options: rankingListOptions },
+  { name: 'lolregister',   description: 'Registar uma partida de League of Legends',      options: registerOptions      },
+  { name: 'lolpoints',     description: 'Ver pontos e estatísticas de LoL de um jogador', options: rankingOptions       },
+  { name: 'lolmensal',     description: 'Ranking mensal de pontos de LoL',                options: rankingListOptions   },
+  { name: 'lolsemanal',    description: 'Ranking semanal de pontos de LoL',               options: rankingListOptions   },
+  { name: 'valregister',   description: 'Registar uma partida de Valorant',               options: registerOptions      },
+  { name: 'valpoints',     description: 'Ver pontos e estatísticas de Valorant de um jogador', options: rankingOptions  },
+  { name: 'valmensal',     description: 'Ranking mensal de pontos de Valorant',           options: rankingListOptions   },
+  { name: 'valsemanal',    description: 'Ranking semanal de pontos de Valorant',          options: rankingListOptions   },
+  { name: 'staffregister', description: '[STAFF] Registar presença ou falta de treino',   options: staffRegisterOptions },
 ];
 
 async function registerCommands() {
