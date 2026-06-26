@@ -35,7 +35,8 @@ export async function handleSelectEvents(interaction: any, pendingId: string): P
       .from('event_types')
       .select()
       .in('codigo', selectedCodigos)
-      .eq('ativo', true),
+      .eq('ativo', true)
+      .eq('game', game),
   ]);
 
   if (playerResult.error || !playerResult.data) {

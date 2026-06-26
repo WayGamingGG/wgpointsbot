@@ -58,6 +58,7 @@ export async function handleStaffRegister(interaction: any): Promise<NextRespons
     .select()
     .eq('codigo', eventoCodigo)
     .eq('ativo', true)
+    .eq('game', game)
     .single();
 
   if (!eventType) {
