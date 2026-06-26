@@ -67,6 +67,6 @@ export async function handlePoints(interaction: any, game: Game): Promise<NextRe
 
   return NextResponse.json({
     type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-    data: { embeds: [embed] },
+    data: { embeds: [embed], flags: 64 },
   });
 }

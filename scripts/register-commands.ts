@@ -43,16 +43,23 @@ const staffRegisterOptions = [
   },
 ];
 
+const staffResetOptions = [
+  { name: 'jogador',    description: 'Jogador a resetar (vazio = reset geral)',      type: 6, required: false },
+  { name: 'confirmar',  description: 'Escreve "sim" para confirmar reset geral',     type: 3, required: false },
+];
+
 const commands = [
-  { name: 'lolregister',   description: 'Registar uma partida de League of Legends',      options: registerOptions      },
-  { name: 'lolpoints',     description: 'Ver pontos e estatísticas de LoL de um jogador', options: rankingOptions       },
-  { name: 'lolmensal',     description: 'Ranking mensal de pontos de LoL',                options: rankingListOptions   },
-  { name: 'lolsemanal',    description: 'Ranking semanal de pontos de LoL',               options: rankingListOptions   },
-  { name: 'valregister',   description: 'Registar uma partida de Valorant',               options: registerOptions      },
-  { name: 'valpoints',     description: 'Ver pontos e estatísticas de Valorant de um jogador', options: rankingOptions  },
-  { name: 'valmensal',     description: 'Ranking mensal de pontos de Valorant',           options: rankingListOptions   },
-  { name: 'valsemanal',    description: 'Ranking semanal de pontos de Valorant',          options: rankingListOptions   },
-  { name: 'staffregister', description: '[STAFF] Registar presença ou falta de treino',   options: staffRegisterOptions },
+  { name: 'lolregister',      description: 'Registar uma partida de League of Legends',           options: registerOptions      },
+  { name: 'lolpoints',        description: 'Ver os teus pontos de LoL (apenas visível para ti)',   options: rankingOptions       },
+  { name: 'valregister',      description: 'Registar uma partida de Valorant',                     options: registerOptions      },
+  { name: 'valpoints',        description: 'Ver os teus pontos de Valorant (apenas visível para ti)', options: rankingOptions    },
+  { name: 'staffregister',    description: '[STAFF] Registar presença ou falta de treino',         options: staffRegisterOptions },
+  { name: 'stafflolmensal',   description: '[STAFF] Ranking mensal de pontos de LoL',              options: rankingListOptions   },
+  { name: 'stafflolsemanal',  description: '[STAFF] Ranking semanal de pontos de LoL',             options: rankingListOptions   },
+  { name: 'stafflolreset',    description: '[STAFF] Resetar pontos de LoL',                        options: staffResetOptions    },
+  { name: 'staffvalmensal',   description: '[STAFF] Ranking mensal de pontos de Valorant',         options: rankingListOptions   },
+  { name: 'staffvalsemanal',  description: '[STAFF] Ranking semanal de pontos de Valorant',        options: rankingListOptions   },
+  { name: 'staffvalreset',    description: '[STAFF] Resetar pontos de Valorant',                   options: staffResetOptions    },
 ];
 
 async function registerCommands() {

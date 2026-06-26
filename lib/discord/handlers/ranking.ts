@@ -6,6 +6,14 @@ const PAGE_SIZE = 10;
 type RankingPeriod = 'semanal' | 'mensal';
 type Game = 'lol' | 'val';
 
+const STAFF_ROLE_IDS = (process.env.DISCORD_STAFF_ROLE_IDS ?? '').split(',').filter(Boolean);
+
+function hasStaffRole(interaction: any): boolean {
+  if (STAFF_ROLE_IDS.length === 0) return true;
+  const memberRoles: string[] = interaction.member?.roles ?? [];
+  return memberRoles.some((r) => STAFF_ROLE_IDS.includes(r));
+}
+
 const GAME_LABEL: Record<Game, string> = { lol: 'LoL', val: 'Valorant' };
 const GAME_COLOR: Record<Game, number> = { lol: 0x5b7fff, val: 0xe94b5a };
 
@@ -32,6 +40,13 @@ export async function handleRanking(
   period: RankingPeriod | 'geral',
   game: Game
 ): Promise<NextResponse> {
+  if (!hasStaffRole(interaction)) {
+    return NextResponse.json({
+      type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+      data: { content: 'Não tens permissão para usar este comando.', flags: 64 },
+    });
+  }
+
   const options = interaction.data.options ?? [];
   const paginaOpt = options.find((o: any) => o.name === 'pagina');
   const page = Math.max(1, paginaOpt?.value ?? 1);
